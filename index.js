@@ -9,29 +9,26 @@ let page = 1;
 
 let options = {
     root: null,  //null - весь viewportwidth, если null можно не указывать
-    rootMargin: '300px', //срабатывание за 300px до конца
+    rootMargin: '400px', //срабатывание за 300px до конца
     treshold: 0, //если 0 можно не указывать, переход границы вьюпорта 1=100%
 }
 
 let observer = new IntersectionObserver(handlerPagination, options);
 
-function handlerPagination(entries) {
+function handlerPagination(entries, observer) {
     entries.forEach(entry => {
-        
+        if (entry.isIntersecting) {
+            page += 1;
+            serviceMovie(page)
+            .then(data => {
+                list.insertAdjacentHTML('beforeend', createMarkup(data.results))
+                if (data.total_pages <= data.page) {
+                    observer.unobserve(guard)   //снимаем обсервер по достижении посл страниці
+                }
+             })
+        }
     });
 };
-
-// function pagination() {
-//     page += 1;
-//     serviceMovie(page)
-//         .then(data => {
-//             list.insertAdjacentHTML('beforeend', createMarkup(data.results))  ///results это с бекэнда
-//             if (data.total_pages <= data.page) {
-//                 loadMore.hidden = true;
-//             }
-//         })
-//         .catch(err => console.log(err));
-// }
 
 function serviceMovie(page = 1) {
     return fetch(`${BASE_URL}${ENDPOINT}?api_key=${API_KEY}&page=${page}`)
